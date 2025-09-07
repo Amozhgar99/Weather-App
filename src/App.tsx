@@ -1,14 +1,16 @@
 import axios from "axios";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./WeatherApp.css";
 
 export default function WeatherApp() {
   const [city, setCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
   const [weather, setWeather] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [bgClass, setBgClass] = useState("sunny");
+  const prevBgClass = useRef("sunny");
 
   const API_KEY = process.env.REACT_APP_WEATHER_API_KEY;
 
@@ -27,7 +29,7 @@ export default function WeatherApp() {
     }
   };
 
-  const getWeather = async (selectedCity?: string) => {
+  const getWeather = async () => {
     const query = selectedCity || city;
     if (!query.trim()) {
       setError("Please enter a city name.");
@@ -50,10 +52,14 @@ export default function WeatherApp() {
       const condition = newWeather.current.condition.text.toLowerCase();
       const isNight = newWeather.current.is_day === 0;
 
-      if (isNight) setBgClass("night");
-      else if (condition.includes("rain")) setBgClass("rainy");
-      else if (condition.includes("cloud")) setBgClass("cloudy");
-      else setBgClass("sunny");
+      const newBg =
+        isNight ? "night" :
+        condition.includes("rain") ? "rainy" :
+        condition.includes("cloud") ? "cloudy" :
+        "sunny";
+
+      prevBgClass.current = bgClass;
+      setBgClass(newBg);
     } catch {
       setError("City not found. Please try again.");
     } finally {
@@ -63,30 +69,12 @@ export default function WeatherApp() {
 
   return (
     <div className="weather-app-container">
-      <div className={`weather-app-background ${bgClass}`} />
+      <div className={`background-layer ${prevBgClass.current}`} />
+      <div className={`background-layer active ${bgClass}`} />
 
       <div className="weather-app-content">
-        <div
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "16px",
-            padding: "20px",
-            maxWidth: "420px",
-            width: "100%",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
-          }}
-        >
-          <h1
-            style={{
-              textAlign: "center",
-              fontSize: "26px",
-              marginBottom: "20px",
-              color: "#333",
-              fontWeight: "bold",
-            }}
-          >
-            🌤️ Weather App
-          </h1>
+        <div className="weather-card">
+          <h1>🌤️ Weather App</h1>
 
           <div style={{ position: "relative" }}>
             <input
@@ -94,55 +82,24 @@ export default function WeatherApp() {
               value={city}
               onChange={(e) => {
                 setCity(e.target.value);
+                setSelectedCity(e.target.value);
                 fetchSuggestions(e.target.value);
               }}
               onKeyDown={(e) => e.key === "Enter" && getWeather()}
               placeholder="Enter city name"
-              style={{
-                width: "100%",
-                padding: "12px",
-                fontSize: "16px",
-                borderRadius: "8px",
-                border: "1px solid #ccc",
-                outline: "none",
-                boxSizing: "border-box",
-              }}
+              className="input"
             />
 
             {suggestions.length > 0 && (
-              <ul
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  backgroundColor: "#fff",
-                  border: "1px solid #ddd",
-                  borderTop: "none",
-                  borderRadius: "0 0 8px 8px",
-                  maxHeight: "180px",
-                  overflowY: "auto",
-                  zIndex: 1000,
-                  margin: 0,
-                  padding: 0,
-                  listStyle: "none",
-                }}
-              >
+              <ul className="suggestions">
                 {suggestions.map((s, index) => (
                   <li
                     key={index}
-                    onClick={() => getWeather(s.name)}
-                    style={{
-                      padding: "10px",
-                      cursor: "pointer",
-                      borderBottom: "1px solid #eee",
+                    onClick={() => {
+                      setCity(s.name);
+                      setSelectedCity(s.name);
+                      setSuggestions([]);
                     }}
-                    onMouseOver={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#f0f0f0")
-                    }
-                    onMouseOut={(e) =>
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
                   >
                     {s.name}, {s.country}
                   </li>
@@ -151,126 +108,30 @@ export default function WeatherApp() {
             )}
           </div>
 
-          <button
-            onClick={() => getWeather()}
-            style={{
-              marginTop: "15px",
-              width: "100%",
-              padding: "12px",
-              fontSize: "16px",
-              borderRadius: "8px",
-              border: "none",
-              background: "#5563DE",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              transition: "background 0.3s",
-            }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.background = "#4351c7")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.background = "#5563DE")
-            }
-          >
+          <button onClick={getWeather} className="button">
             Get Weather
           </button>
 
-          {error && (
-            <div
-              style={{
-                marginTop: "15px",
-                backgroundColor: "#ffe5e5",
-                color: "#cc0000",
-                padding: "10px",
-                borderRadius: "8px",
-                textAlign: "center",
-                fontWeight: "bold",
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          {loading && (
-            <p
-              style={{
-                marginTop: "15px",
-                textAlign: "center",
-                color: "#555",
-              }}
-            >
-              Loading...
-            </p>
-          )}
+          {error && <div className="error">{error}</div>}
+          {loading && <p className="loading">Loading...</p>}
 
           {weather && !loading && (
-            <div
-              style={{
-                marginTop: "20px",
-                padding: "20px",
-                backgroundColor: "#f9f9ff",
-                borderRadius: "12px",
-                textAlign: "center",
-                boxShadow: "inset 0 0 8px rgba(0,0,0,0.05)",
-              }}
-            >
-              <h2
-                style={{
-                  fontSize: "20px",
-                  marginBottom: "10px",
-                  color: "#333",
-                  fontWeight: "bold",
-                }}
-              >
+            <div className="weather-info">
+              <h2>
                 {weather.location.name}, {weather.location.country}
               </h2>
-              <p
-                style={{
-                  fontSize: "36px",
-                  fontWeight: "bold",
-                  color: "#5563DE",
-                  margin: "5px 0",
-                }}
-              >
-                {weather.current.temp_c}°C
-              </p>
-              <p
-                style={{
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  color: "#555",
-                  margin: "5px 0",
-                }}
-              >
-                {weather.current.condition.text}
-              </p>
+              <p className="temp">{weather.current.temp_c}°C</p>
+              <p className="condition">{weather.current.condition.text}</p>
               <img
                 src={weather.current.condition.icon}
                 alt={weather.current.condition.text}
-                style={{ width: "64px", height: "64px", marginTop: "10px" }}
+                className="icon"
               />
-
-              <div
-                style={{
-                  marginTop: "15px",
-                  display: "grid",
-                  gridTemplateColumns: "1fr",
-                  gap: "10px",
-                }}
-              >
-                <p>
-                  <strong>🌡️ Feels Like:</strong> {weather.current.feelslike_c}°C
-                </p>
-                <p>
-                  <strong>💧 Humidity:</strong> {weather.current.humidity}%
-                </p>
-                <p>
-                  <strong>🌬️ Wind:</strong> {weather.current.wind_kph} km/h
-                </p>
-                <p>
-                  <strong>🕒 Local Time:</strong> {weather.location.localtime}
-                </p>
+              <div className="details">
+                <p><strong>🌡️ Feels Like:</strong> {weather.current.feelslike_c}°C</p>
+                <p><strong>💧 Humidity:</strong> {weather.current.humidity}%</p>
+                <p><strong>🌬️ Wind:</strong> {weather.current.wind_kph} km/h</p>
+                <p><strong>🕒 Local Time:</strong> {weather.location.localtime}</p>
               </div>
             </div>
           )}
