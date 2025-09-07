@@ -116,7 +116,7 @@ export default function WeatherApp() {
           {loading && <p className="loading">Loading...</p>}
 
           {weather && !loading && (
-            <div className="weather-info">
+            <div className="weather-info animated">
               <h2>
                 {weather.location.name}, {weather.location.country}
               </h2>
