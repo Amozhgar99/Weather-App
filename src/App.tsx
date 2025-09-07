@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import "./WeatherApp.css";
 
 export default function WeatherApp() {
@@ -109,7 +109,7 @@ export default function WeatherApp() {
           </div>
 
           <button onClick={getWeather} className="button">
-            Get Weather
+            Let's Go!🤩
           </button>
 
           {error && <div className="error">{error}</div>}
