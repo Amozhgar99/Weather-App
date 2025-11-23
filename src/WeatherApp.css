@@ -218,3 +218,13 @@ h1 {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
+.location-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.local-time {
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}

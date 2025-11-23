@@ -54,9 +54,9 @@ export default function WeatherApp() {
 
       const newBg =
         isNight ? "night" :
-        condition.includes("rain") ? "rainy" :
-        condition.includes("cloud") ? "cloudy" :
-        "sunny";
+          condition.includes("rain") ? "rainy" :
+            condition.includes("cloud") ? "cloudy" :
+              "sunny";
 
       prevBgClass.current = bgClass;
       setBgClass(newBg);
@@ -117,10 +117,11 @@ export default function WeatherApp() {
 
           {weather && !loading && (
             <div className="weather-info animated">
-              <h2>
-                {weather.location.name}, {weather.location.country}
-              </h2>
-              <p className="temp">{weather.current.temp_c}°C</p>
+              <div className="location-header">
+                <h2>{weather.location.name}, {weather.location.country}</h2>
+                <p className="local-time">{weather.location.localtime}</p>
+              </div>
+              <p className="temp">{Math.round(weather.current.temp_c)}°C</p>
               <p className="condition">{weather.current.condition.text}</p>
               <img
                 src={weather.current.condition.icon}
@@ -131,7 +132,6 @@ export default function WeatherApp() {
                 <p><strong>🌡️ Feels Like:</strong> {weather.current.feelslike_c}°C</p>
                 <p><strong>💧 Humidity:</strong> {weather.current.humidity}%</p>
                 <p><strong>🌬️ Wind:</strong> {weather.current.wind_kph} km/h</p>
-                <p><strong>🕒 Local Time:</strong> {weather.location.localtime}</p>
               </div>
             </div>
           )}
